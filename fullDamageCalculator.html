@@ -148,6 +148,7 @@
             else if (stats.name == "zhongli") {return updateZhongliBaseDamage(workable_data, stats);}
             else if (stats.name == "kokomi") {return updateKokomiBaseDamage(workable_data, stats);}
             // Characters with weird stacking or scalings
+            else if (stats.name == "raiden") {return updateRaidenBaseDamage(workable_data, stats);}
             // Uhh, idk yet
             else {
                 const re = /<td>(.*?)<\/td>/;
@@ -619,7 +620,7 @@
                     <span class="input-group-text" id="addon-wrapping">Talent 1 Counts as elemental damage?</span>
 
                     <div class="input-group-text">
-                        <input class="form-check-input mt-0" id="isTalent1Elemental" type="checkbox" value="" aria-label="Talent 1 Counts as elemental damage">
+                        <input class="form-check-input mt-0" id="isTalent1Elemental" type="checkbox">
                     </div>
                 </div>
                 <div class="input-group mb-3">
@@ -644,7 +645,7 @@
                     <span class="input-group-text" id="addon-wrapping">Talent 2 Counts as elemental damage?</span>
 
                     <div class="input-group-text">
-                        <input class="form-check-input mt-0" id="isTalent2Elemental" type="checkbox" value="" aria-label="Talent 2 Counts as elemental damage">
+                        <input class="form-check-input mt-0" id="isTalent2Elemental" type="checkbox" checked>
                     </div>
                 </div>
                 <div class="input-group mb-3">
@@ -669,7 +670,7 @@
                     <span class="input-group-text" id="addon-wrapping">Talent 3 Counts as elemental damage?</span>
 
                     <div class="input-group-text">
-                        <input class="form-check-input mt-0" id="isTalent3Elemental" type="checkbox" value="" aria-label="Talent 3 Counts as elemental damage">
+                        <input class="form-check-input mt-0" id="isTalent3Elemental" type="checkbox" checked>
                     </div>
                 </div>
             </div>
