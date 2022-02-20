@@ -41,15 +41,12 @@ Link: https://chibbluffy.github.io/just-genshin-things/fullDamageCalculator.html
     - Burst DMG
 
 ## Planned Future Features
-- enemy level gap damage difference
-- enemy resistances
-- damage from lowering enemy defense and resistances
-- shield strength
+- enemy resistances/level
+- special artifacts (emblem)
 
-## How to update data
+## Bugs
+- Melt/Vape
+
+## How to update data for local host
 - run `python getHoneyCharacterData.py`
-- update talent_categories.js file with new data
-    - If you don't, you may get incorrect calculations if it automatically categorizes the damage to the wrong talent
 - if a character has some sort of infusion or buff, make sure to add a new function to the calculate method since it isn't a normal calculation.
-
-Chongyun
