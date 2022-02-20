@@ -237,7 +237,6 @@
                     }
                 }
                 table += `<tr></tr>`;
-                console.log(table);
                 return table;
             }
         }  
@@ -380,18 +379,18 @@
             } else if (stats.element == 'pyro') {
                 transformingTable += formatTableData('Overload', calculateOverloadDamage(stats).toFixed(1));
                 amplifyingTable += formatTableDataWithCrits('Melts', '', '', '');
-                amplifyingTable += calculateBaseDamage(workable_data, stats, 3);
+                amplifyingTable += calculateBaseDamage(workable_data, stats, 2*calculateMeltVapeDamageBonus(stats));
                 amplifyingTable += formatTableDataWithCrits(' ', '', '', '');
                 amplifyingTable += formatTableDataWithCrits('Vapes', '', '', '');
-                amplifyingTable += calculateBaseDamage(workable_data, stats, 2.5);
+                amplifyingTable += calculateBaseDamage(workable_data, stats, 1.5*calculateMeltVapeDamageBonus(stats));
             } else if (stats.element == 'cryo') {
                 transformingTable += formatTableData('Superconduct', calculateSuperconductDamage(stats).toFixed(1));
                 amplifyingTable += formatTableDataWithCrits('Melts', '', '', '');
-                amplifyingTable += calculateBaseDamage(workable_data, stats, 2.5);
+                amplifyingTable += calculateBaseDamage(workable_data, stats, 1.5*calculateMeltVapeDamageBonus(stats));
             } else if (stats.element == 'hydro') {
                 transformingTable += formatTableData('Electro-charge', calculateElectrochargeDamage(stats).toFixed(1));
                 amplifyingTable += formatTableDataWithCrits('Vapes', '', '', '');
-                amplifyingTable += alculateBaseDamage(workable_data, stats, 2);
+                amplifyingTable += alculateBaseDamage(workable_data, stats, 2*calculateMeltVapeDamageBonus(stats));
             } else if (stats.element == 'anemo') {
                 transformingTable += formatTableData('Swirl', calculateSwirlDamage(stats).toFixed(1));
             } else if (stats.element == 'geo') {
@@ -475,7 +474,7 @@
         }
 
         function calculateMeltVapeDamageBonus(stats) {
-            const bonusMultiplier = calculateEMMultiplierX(stats.elementalMastery);
+            const bonusMultiplier = 1+calculateEMMultiplierX(+stats.elementalMastery)/100;
             return bonusMultiplier;
         }
 
