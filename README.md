@@ -44,9 +44,6 @@ Link: https://chibbluffy.github.io/just-genshin-things/fullDamageCalculator.html
 - enemy resistances/level
 - special artifacts (emblem)
 
-## Bugs
-- Melt/Vape
-
 ## How to update data for local host
 - run `python getHoneyCharacterData.py`
 - if a character has some sort of infusion or buff, make sure to add a new function to the calculate method since it isn't a normal calculation.
