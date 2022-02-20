@@ -1,4 +1,5 @@
 # Simple Comprehensive Genshin Damage Calculator
+Link: https://chibbluffy.github.io/just-genshin-things/fullDamageCalculator.html
 
 ## Sources
 - Genshin character stats and skill multipliers are from [HoneyImpact](https://genshin.honeyhunterworld.com/?lang=EN)
