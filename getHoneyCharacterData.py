@@ -14,8 +14,9 @@ with open('character_stats.js', 'w', encoding="utf-8") as file:
         elif character == "shougun":
             file.write('"CHARACTER_NAME: raiden",\n')
         elif "traveler_boy" in character:
-            file.write(f'"CHARACTER_NAME: aether_{character[13:]}",\n')
+            file.write(f'"CHARACTER_NAME: traveler_{character[13:]}",\n')
         elif "traveler_girl" in character:
+            continue
             file.write(f'"CHARACTER_NAME: lumine_{character[14:]}",\n')
         else:
             file.write('"CHARACTER_NAME: ' + character + '",\n')

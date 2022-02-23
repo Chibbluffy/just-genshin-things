@@ -133,12 +133,12 @@
             workable_data.shift();
             workable_data.shift();
             let workable_data_clone = JSON.parse(JSON.stringify(workable_data));
-            document.getElementById("base-damage-table").innerHTML = calculateBaseDamage(workable_data_clone, stats, 1);;
+            document.getElementById("base-damage-table").innerHTML = calculateBaseDamageTable(workable_data_clone, stats, 1);;
             workable_data_clone = JSON.parse(JSON.stringify(workable_data));
             updateReactionDamage(workable_data_clone, stats);
         }
 
-        function calculateBaseDamage(workable_data, stats, final_multiplier) {
+        function calculateBaseDamageTable(workable_data, stats, final_multiplier) {
             // Characters with infusions
             if (stats.name == "yoimiya") {return updateYoimiyaBaseDamage(workable_data, stats);}
             else if (stats.name == "hutao") {return updateHutaoBaseDamage(workable_data, stats);}
@@ -156,6 +156,7 @@
                 let table = ``;
                 let talentLevel = 0;
                 for (const original_line of workable_data) {
+                    let damageInfo;
                     let line = original_line.slice();
                     if (line.match(/TALENT_LEVEL: (.)/)) {
                         talentLevel = line.match(/TALENT_LEVEL: (.)/)[1];
@@ -182,59 +183,20 @@
                             ) {
                         continue;
                     }
-                    if (talentLevel == 1) {
-                        const baseDamage = getDamage(1, line, stats, 0);
-                        if (baseDamage.length == 2) {
-                            const critDamageA = calculateCritDamage(baseDamage[0], stats.critDamage);
-                            const critDamageB = calculateCritDamage(baseDamage[1], stats.critDamage);
 
-                            const averageDamageA = calculateAverageDamage(baseDamage[0], stats.critRate, critDamageA);
-                            const averageDamageB = calculateAverageDamage(baseDamage[1], stats.critRate, critDamageB);
+                    damageInfo = getDamage(talentLevel, line, stats, 0);
+                    let crits = [damageInfo[0]];
+                    let averages = [damageInfo[0]];
+                    for (const damage of damageInfo.slice(1)) {
+                        crits.push(calculateCritDamage(damage, stats.critDamage));
+                        averages.push(calculateAverageDamage(damage, stats.critRate, crits[crits.length-1]));
+                    }
 
-                            if (damageName.includes("Plunge")) {
-                                table += formatTableDataWithCrits(damageName, 
-                                    `${(baseDamage[0] * final_multiplier).toFixed(1)} / ${(baseDamage[1] * final_multiplier).toFixed(1)}` ,
-                                    `${(critDamageA.toFixed(1) * final_multiplier).toFixed(1)} / ${(critDamageB * final_multiplier).toFixed(1)}`,
-                                    `${(averageDamageA.toFixed(1) * final_multiplier).toFixed(1)} / ${(averageDamageB * final_multiplier).toFixed(1)}`,
-                                    );
-                            } else {
-                                table += formatTableDataWithCrits(damageName, 
-                                    `${(baseDamage[0] * final_multiplier).toFixed(1)} + ${(baseDamage[1] * final_multiplier).toFixed(1)}` ,
-                                    `${(critDamageA * final_multiplier).toFixed(1)} + ${(critDamageB * final_multiplier).toFixed(1)}`,
-                                    `${(averageDamageA * final_multiplier).toFixed(1)} + ${(averageDamageB * final_multiplier).toFixed(1)}`,
-                                    );
-                            }
-                        }
-                        else {
-                            const critDamage = calculateCritDamage(baseDamage[0], stats.critDamage);
-                            const averageDamage = calculateAverageDamage(baseDamage[0], stats.critRate, critDamage);
-                            table += formatTableDataWithCrits(damageName, 
-                                (baseDamage[0] * final_multiplier).toFixed(1),
-                                (critDamage * final_multiplier).toFixed(1),
-                                (averageDamage * final_multiplier).toFixed(1),
-                                );
-                        }
-                    }
-                    else if (talentLevel == 2) {
-                        const baseDamage = getDamage(2, line, stats, 0);
-                        const critDamage = baseDamage[0] + baseDamage[0]*stats.critDamage/100;
-                        const averageDamage = baseDamage[0] + ((critDamage-baseDamage[0])*(stats.critRate/100));
-                        table += formatTableDataWithCrits(damageName, 
-                            (baseDamage[0] * final_multiplier).toFixed(1),
-                            (critDamage * final_multiplier).toFixed(1),
-                            (averageDamage * final_multiplier).toFixed(1),
-                            );                    
-                    }
-                    else if (talentLevel == 3) {
-                        const baseDamage = getDamage(3, line, stats, 0);
-                        const critDamage = baseDamage[0] + baseDamage[0]*stats.critDamage/100;
-                        const averageDamage = baseDamage[0] + ((critDamage-baseDamage[0])*(stats.critRate/100));
-                        table += formatTableDataWithCrits(damageName, 
-                            (baseDamage[0] * final_multiplier).toFixed(1),
-                            (critDamage * final_multiplier).toFixed(1),
-                            (averageDamage * final_multiplier).toFixed(1),
+                    table += formatTableDataWithCrits(damageName, 
+                            `${(damageInfo[1] * final_multiplier).toFixed(1)}${damageInfo[0]}${damageInfo[2] ? ((damageInfo[2] * final_multiplier).toFixed(1)) : "" }`,
+                            `${(crits[1] * final_multiplier).toFixed(1)}${crits[0]}${crits[2] ? ((crits[2] * final_multiplier).toFixed(1)) : "" }`,
+                            `${(averages[1] * final_multiplier).toFixed(1)}${averages[0]}${averages[2] ? ((averages[2] * final_multiplier).toFixed(1)) : "" }`
                             );
-                    }
                 }
                 table += `<tr></tr>`;
                 return table;
@@ -242,13 +204,13 @@
         }  
 
         function getDamage(talentNumber, talentData, stats, bonusDmg) {
-            let parsedTalentData = cleanAndSplitByTags(talentData);
-            let scaling;
-            let count;
+            let parsedTalentData = splitByTags(talentData);
             let baseStat = stats.attack;
-            let enemyDefense = .5;
-            let enemyResistance = .9;
+            let enemyDefenseMultiplier = (stats.level+100)/(stats.level+stats.enemyLevel+200);
+            let enemyResistance;
             let bonusFlatDamage = stats.bonusFlatDamage;
+            let parsedScalings;
+            let count;
             bonusDmg += stats.bonusAllDamage;
             if (parsedTalentData[1].includes("DEF")) {
                 const tempTalentData = [];
@@ -258,7 +220,6 @@
                 parsedTalentData = tempTalentData;
                 baseStat = stats.defense;
             }
-
             else if (parsedTalentData[1].includes("HP")) {
                 const tempTalentData = [];
                 for (let talentData of parsedTalentData) {
@@ -267,30 +228,17 @@
                 parsedTalentData = tempTalentData;
                 baseStat = stats.hp;
             }
-
             if (talentNumber == 1) {
-                scaling = parsedTalentData[stats.talent1Level];
-                // Elemental or Physical
-                if (stats.isTalent1Elemental || stats.weapon == "catalyst") {
-                    bonusDmg += stats.elementalDamage;
-                }
-                else {
-                    bonusDmg += stats.physicalDamage;
-                }
+                parsedScalings = parseScalings(parsedTalentData, stats.talent1Level);
+                enemyResistance = stats.isTalent1Elemental ? stats.enemyElementalResistance : stats.enemyPhysicalResistance;
+                bonusDmg += (stats.isTalent1Elemental || stats.weapon == "catalyst") ? stats.elementalDamage : stats.physicalDamage;
+                
                 // NA
                 if (parsedTalentData[0].includes("-Hit")) {
                     if (stats.specialWeapon == "Redhorn Stonethresher") {
                         bonusFlatDamage = stats.defense*.4;
                     }
-                    const [damage, count] = scaling.split("×");
-                    const [scalingA, scalingB] = scaling.split(" + ");
                     bonusDmg += stats.bonusNADamage;
-                    if (scalingB) {
-                        return [
-                            calculateDamage(baseStat, scalingA, bonusFlatDamage, bonusDmg, 0) * enemyDefense * enemyResistance,
-                            calculateDamage(baseStat, scalingB, bonusFlatDamage, bonusDmg, 0) * enemyDefense * enemyResistance];
-                    }
-                    scaling = +damage;
                 }
                 // CA
                 else if (parsedTalentData[0].includes("Spinning")
@@ -298,15 +246,7 @@
                     if (stats.specialWeapon == "Redhorn Stonethresher") {
                         bonusFlatDamage = stats.defense*.4;
                     }
-                    const [damage, count] = scaling.split("×");
-                    const [scalingA, scalingB] = scaling.split(" + ");
                     bonusDmg += stats.bonusCADamage;
-                    if (scalingB) {
-                        return [
-                            calculateDamage(baseStat, scalingA, bonusFlatDamage, bonusDmg, 0) * enemyDefense * enemyResistance,
-                            calculateDamage(baseStat, scalingB, bonusFlatDamage, bonusDmg, 0) * enemyDefense * enemyResistance];
-                    } 
-                    scaling = +damage;
                 }
                 else if (  parsedTalentData[0].includes("Fully-Charged Aimed Shot")
                         || parsedTalentData[0].includes("Aimed Shot Charge Level 1")
@@ -318,54 +258,29 @@
                 // Plunge
                 else if (parsedTalentData[0].includes("Plunge")) {
                     bonusDmg += stats.bonusPlungeDamage;
-                    if (parsedTalentData[0].includes("/")) {
-                        const [low, high] = scaling.split(" / ");
-                        return [
-                            calculateDamage(baseStat, low, bonusFlatDamage, bonusDmg, 0) * enemyDefense * enemyResistance,
-                            calculateDamage(baseStat, high, bonusFlatDamage, bonusDmg, 0) * enemyDefense * enemyResistance];
-                    }
                 }
             }
             else if (talentNumber == 2) {
-                scaling = parsedTalentData[stats.talent2Level];
-                // Elemental or Physical
-                if (stats.isTalent2Elemental) {
-                    bonusDmg += stats.elementalDamage;
-                }
-                else {
-                    bonusDmg += stats.physicalDamage;
-                }
+                parsedScalings = parseScalings(parsedTalentData, stats.talent2Level);
+                enemyResistance = stats.isTalent2Elemental ? stats.enemyElementalResistance : stats.enemyPhysicalResistance;
+                bonusDmg += stats.isTalent2Elemental ? stats.elementalDamage : stats.physicalDamage;
                 if (stats.specialWeapon == "Cinnibar Spindle") {
                     bonusFlatDamage = stats.defense*.8;
                 }
-                const [damage, count] = scaling.split("×");
-                const [scalingA, scalingB] = scaling.split(" + ");
-                if (scalingB) {
-                    return [
-                        calculateDamage(baseStat, scalingA, bonusFlatDamage, bonusDmg, 0) * enemyDefense * enemyResistance,
-                        calculateDamage(baseStat, scalingB, bonusFlatDamage, bonusDmg, 0) * enemyDefense * enemyResistance];
-                }
-                scaling = +damage;
+                bonusDmg += stats.bonusSkillDamage;
             }
             else if (talentNumber == 3) {
-                scaling = parsedTalentData[stats.talent3Level];
-                // Elemental or Physical
-                if (stats.isTalent3Elemental) {
-                    bonusDmg += stats.elementalDamage;
-                }
-                else {
-                    bonusDmg += stats.physicalDamage;
-                }
-                const [damage, count] = scaling.split("×");
-                const [scalingA, scalingB] = scaling.split(" + ");
-                if (scalingB) {
-                    return [
-                        calculateDamage(baseStat, scalingA, bonusFlatDamage, bonusDmg, 0) * enemyDefense * enemyResistance,
-                        calculateDamage(baseStat, scalingB, bonusFlatDamage, bonusDmg, 0) * enemyDefense * enemyResistance];
-                }
-                scaling = +damage;
+                parsedScalings = parseScalings(parsedTalentData, stats.talent3Level);
+                enemyResistance = stats.isTalent3Elemental ? stats.enemyElementalResistance : stats.enemyPhysicalResistance;
+                bonusDmg += stats.isTalent3Elemental ? stats.elementalDamage : stats.physicalDamage;
+                bonusDmg += stats.bonusSkillDamage;
             }
-            return [calculateDamage(baseStat, scaling, bonusFlatDamage, bonusDmg, 0) * enemyDefense * enemyResistance];
+            let result = [];
+            result.push(parsedScalings[0]);
+            for (const scaling of parsedScalings.slice(1)) {
+                result.push(calculateDamage(baseStat, scaling, bonusFlatDamage, bonusDmg, 0) * enemyDefenseMultiplier * ((100 - enemyResistance) / 100));
+            }
+            return result;
         }
 
         function updateReactionDamage(workable_data, stats) {
@@ -558,32 +473,41 @@
 
         }
 
-        function cleanAndSplitByTags(original) {
+        function splitByTags(original) {
             let str = original.slice(); 
             let output = str.replaceAll("<tr>", "")
                       .replaceAll("<td>", "")
                       .replaceAll("</tr>", "")
-                      .replaceAll("%", "")
                       .replaceAll("次", "")
                       .replaceAll("<br>", "")
-                      .replaceAll(" each", "")
-                      .replaceAll("per Paw", "")
                       .replaceAll("</td>", "\n")
                       .split("\n");
-            if (output.includes(" + ")) {
-                return output.split(" + ");
-            }
-            if (output.includes(" / ")) {
-                return output.split(" / ");
-            } 
             return output;
         };
+
+        function parseScalings(scalings, level) {
+            let scaling = scalings[level];
+            let numbers = scaling.match(/(\d*\.?\d*)%/g);
+            let separator = scaling;
+            for (const n of numbers) {
+                separator = separator.replaceAll(n, "");
+            }
+            let result = [];
+            result.push(separator);
+            for (let n of numbers) {
+                n = n.replaceAll("%", "");
+                result.push(n);
+            }
+            return result;
+        }
     </script>
 
 </head>
 <body class="container bg-dark">
     <div class="text-center text-light">
         <h2>Genshin Impact Simple Full Damage Calculator</h2><br>
+        <p class="text-light" style="font-size: 11px">Scalings data sourced from HoneyImpact</p>
+
         <div class="inner-container">
             <div class="character-name">
                 <label for="character" class="form-label">Character: </label><br>
@@ -701,8 +625,7 @@
         </div>
         <!-- custom enemy settings (hidden until button clicked) -->
         <div class="right">
-        <!-- <button type="button" class="btn btn-primary" onclick="toggleEnemySettings()">Customize enemy</button> -->
-        <button type="button" class="btn btn-primary">Customize enemy</button>
+        <button type="button" class="btn btn-primary" onclick="toggleEnemySettings()">Customize enemy</button>
         </div>
         <br>
         <br>
@@ -802,7 +725,7 @@
             </table>
 
             <h2>Reactions</h2>
-            <table class="table text-light" id="transformative-reaction-table">
+            <table class="table text-light hidden" id="transformative-reaction-table">
                 <thead>
                     <tr>
                         <th scope="Reaction Name">Transformative Reaction</th>
@@ -813,7 +736,7 @@
                     <tr></tr>
                 </tbody>
             </table>
-            <table class="table text-light" id="crystallize-reaction-table">
+            <table class="table text-light hidden" id="crystallize-reaction-table">
                 <thead>
                     <tr>
                         <th scope="Reaction Name">Crystallize</th>
@@ -824,7 +747,7 @@
                     <tr></tr>
                 </tbody>
             </table>
-            <table class="table text-light" id="amplifying-reaction-table">
+            <table class="table text-light hidden" id="amplifying-reaction-table">
                 <thead>
                     <tr>
                         <th scope="Damage Source">Amplifying Reaction</th>

@@ -19,7 +19,10 @@ Link: https://chibbluffy.github.io/just-genshin-things/fullDamageCalculator.html
     - crit dmg
     - elemental mastery
     - elemental damage
+    - energy recharge
 - character additional bonuses (from weapon, artifact, constellation, etc.)
+    - weapon
+    - artifact
     - elemental bonus damages
     - NA bonus damages
     - CA bonus damages
@@ -27,6 +30,11 @@ Link: https://chibbluffy.github.io/just-genshin-things/fullDamageCalculator.html
     - skill bonus damages
     - burst bonus damages
     - all damage bonuses
+- enemy stats
+    - enemy name (to autofill resistances)
+    - level
+    - elemental resistance
+    - physical resistance
 
 ## Outputs
 - minimun, maximum, and average damages for the below with no buffs
